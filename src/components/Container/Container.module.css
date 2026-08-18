@@ -1,0 +1,22 @@
+.container {
+    width: 98rem;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.content {
+    margin: 3.2rem auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.content section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}

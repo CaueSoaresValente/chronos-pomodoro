@@ -1,0 +1,38 @@
+.buttonContainer {
+    min-width: auto;
+    margin: 0;
+    padding: 1rem;
+
+}
+
+.buttonContainer button svg {
+    width: 2rem;
+    height: 2rem;
+}
+
+.reponsiveTable {
+    overflow-x: auto;
+    border-radius: 0.8rem;
+}
+
+.reponsiveTable table {
+    width: 100%;
+    min-width: 64rem;
+    font-size: 1.6rem;
+    border-collapse: collapse;
+}
+
+.reponsiveTable th {
+    background-color: var(--gray-600);
+}
+
+.reponsiveTable td {
+    background-color: var(--gray-800);
+}
+
+.reponsiveTable th,
+.reponsiveTable td {
+    padding: 1.6rem;
+    text-align: left;
+    border-bottom: 0.2rem solid var(--gray-700);
+}

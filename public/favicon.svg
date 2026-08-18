@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="chronosBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#181f2e" />
+      <stop offset="100%" stop-color="#0a0f1a" />
+    </linearGradient>
+    <linearGradient id="chronosPrimary" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4de7b7" />
+      <stop offset="100%" stop-color="#0da170" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background Card -->
+  <rect width="512" height="512" rx="128" fill="url(#chronosBg)" />
+  
+  <!-- Top Timer Knob -->
+  <rect x="224" y="60" width="64" height="28" rx="10" fill="url(#chronosPrimary)" />
+  <rect x="242" y="88" width="28" height="28" fill="url(#chronosPrimary)" />
+
+  <!-- Timer Outer Ring Background -->
+  <circle cx="256" cy="280" r="150" fill="none" stroke="#272f43" stroke-width="32" />
+  
+  <!-- Timer Progress Arc -->
+  <circle cx="256" cy="280" r="150" fill="none" stroke="url(#chronosPrimary)" stroke-width="32" stroke-dasharray="942" stroke-dashoffset="235" stroke-linecap="round" transform="rotate(-90 256 280)" />
+  
+  <!-- Clock Center Pin -->
+  <circle cx="256" cy="280" r="20" fill="url(#chronosPrimary)" />
+  
+  <!-- Clock Hands -->
+  <path d="M256 280 V180" stroke="url(#chronosPrimary)" stroke-width="24" stroke-linecap="round" />
+  <path d="M256 280 L330 238" stroke="url(#chronosPrimary)" stroke-width="24" stroke-linecap="round" />
+</svg>
