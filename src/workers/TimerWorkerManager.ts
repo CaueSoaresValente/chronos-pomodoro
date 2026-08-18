@@ -1,34 +1,51 @@
-import type { TaskStateModel } from "../models/TaskStateModel"
-
-export let instance: TimerWorkerManager | null = null
-
+import type { TaskStateModel } from "../models/TaskStateModel";
 
 export class TimerWorkerManager {
-    private worker: Worker
+    private static instance: TimerWorkerManager | null = null;
+    private worker: Worker | null = null;
+    private onMessageCallback: ((event: MessageEvent) => void) | null = null;
 
-    private constructor(){
-        this.worker = new Worker(new URL('../workers/timerWorker.js', import.meta.url))
+    private constructor() {
+        this.initWorker();
     }
 
-    static getInstance(){
-        if (!instance){
-            instance = new TimerWorkerManager()
+    private initWorker() {
+        try {
+            this.worker = new Worker(new URL('./timerWorker.js', import.meta.url), { type: 'module' });
+            if (this.onMessageCallback) {
+                this.worker.onmessage = this.onMessageCallback;
+            }
+        } catch (error) {
+            console.error("Erro ao inicializar o Web Worker do timer:", error);
         }
-        return instance
     }
 
-    postMessage(message:TaskStateModel){
-       this.worker.postMessage(message)
+    static getInstance(): TimerWorkerManager {
+        if (!TimerWorkerManager.instance) {
+            TimerWorkerManager.instance = new TimerWorkerManager();
+        }
+        return TimerWorkerManager.instance;
     }
 
-    onMessage(callback: (event: MessageEvent) => void){
-        this.worker.onmessage = callback
+    postMessage(message: TaskStateModel) {
+        if (!this.worker) {
+            this.initWorker();
+        }
+        this.worker?.postMessage(message);
     }
 
-    terminate(){
-        this.worker.terminate()
-        instance = null
+    onMessage(callback: (event: MessageEvent) => void) {
+        this.onMessageCallback = callback;
+        if (this.worker) {
+            this.worker.onmessage = callback;
+        }
     }
 
-
+    terminate() {
+        if (this.worker) {
+            this.worker.terminate();
+            this.worker = null;
+        }
+        TimerWorkerManager.instance = null;
+    }
 }
