@@ -1,9 +1,13 @@
 import type { TaskStateModel } from "../models/TaskStateModel";
+import TimerWorker from "./timerWorker.js?worker";
 
 export class TimerWorkerManager {
     private static instance: TimerWorkerManager | null = null;
     private worker: Worker | null = null;
+    private fallbackIntervalId: number | null = null;
     private onMessageCallback: ((event: MessageEvent) => void) | null = null;
+    private currentTargetEnd: number | null = null;
+    private currentTaskId: string | null = null;
 
     private constructor() {
         this.initWorker();
@@ -11,12 +15,13 @@ export class TimerWorkerManager {
 
     private initWorker() {
         try {
-            this.worker = new Worker(new URL('./timerWorker.js', import.meta.url), { type: 'module' });
+            this.worker = new TimerWorker();
             if (this.onMessageCallback) {
                 this.worker.onmessage = this.onMessageCallback;
             }
         } catch (error) {
-            console.error("Erro ao inicializar o Web Worker do timer:", error);
+            console.warn("Web Worker não pôde ser inicializado. Usando fallback de timer:", error);
+            this.worker = null;
         }
     }
 
@@ -28,10 +33,60 @@ export class TimerWorkerManager {
     }
 
     postMessage(message: TaskStateModel) {
-        if (!this.worker) {
-            this.initWorker();
+        if (this.worker) {
+            try {
+                this.worker.postMessage(message);
+                return;
+            } catch (err) {
+                console.warn("Erro ao enviar mensagem para Web Worker. Usando fallback:", err);
+                this.worker = null;
+            }
         }
-        this.worker?.postMessage(message);
+
+        this.runFallbackTimer(message);
+    }
+
+    private runFallbackTimer(message: TaskStateModel) {
+        const { activeTask, secondsRemaining } = message;
+
+        if (!activeTask) {
+            if (this.fallbackIntervalId !== null) {
+                clearInterval(this.fallbackIntervalId);
+                this.fallbackIntervalId = null;
+            }
+            this.currentTaskId = null;
+            this.currentTargetEnd = null;
+            return;
+        }
+
+        if (this.currentTaskId === activeTask.id && this.fallbackIntervalId !== null) {
+            return;
+        }
+
+        if (this.fallbackIntervalId !== null) {
+            clearInterval(this.fallbackIntervalId);
+        }
+
+        this.currentTaskId = activeTask.id;
+        this.currentTargetEnd = Date.now() + secondsRemaining * 1000;
+
+        this.fallbackIntervalId = window.setInterval(() => {
+            if (!this.currentTargetEnd) return;
+            const countDownSeconds = Math.max(0, Math.ceil((this.currentTargetEnd - Date.now()) / 1000));
+
+            if (this.onMessageCallback) {
+                this.onMessageCallback({ data: countDownSeconds } as MessageEvent);
+            }
+
+            if (countDownSeconds <= 0) {
+                if (this.fallbackIntervalId !== null) {
+                    clearInterval(this.fallbackIntervalId);
+                    this.fallbackIntervalId = null;
+                }
+                this.currentTaskId = null;
+                this.currentTargetEnd = null;
+            }
+        }, 1000);
     }
 
     onMessage(callback: (event: MessageEvent) => void) {
@@ -45,6 +100,10 @@ export class TimerWorkerManager {
         if (this.worker) {
             this.worker.terminate();
             this.worker = null;
+        }
+        if (this.fallbackIntervalId !== null) {
+            clearInterval(this.fallbackIntervalId);
+            this.fallbackIntervalId = null;
         }
         TimerWorkerManager.instance = null;
     }
